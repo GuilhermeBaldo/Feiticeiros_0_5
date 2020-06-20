@@ -23,6 +23,9 @@ public:
 	// Sets default values for this character's properties
 	AMyCharacter();
 
+    /** Property replication */
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
     /** Returns CameraBoom subobject **/
     FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
@@ -48,6 +51,28 @@ protected:
     /** Response to health being updated. Called on the server immediately after modification, and on clients in response to a RepNotify*/
     void OnHealthUpdate();
 
+    /** Function for ending weapon fire. Once this is called, the player can use StartFire again.*/
+    UFUNCTION(BlueprintCallable, Category = "Gameplay")
+    void StopCast();
+
+    /** Server function for spawning projectiles.*/
+    UFUNCTION(Server, Reliable, WithValidation)
+    void HandleCast(FVector2D Direction);
+
+    /** A timer handle used for providing the fire rate delay in-between spawns.*/
+    FTimerHandle CastingTimer;
+
+    /** If true, we are in the process of firing projectiles. */
+    bool bIsCasting;
+
+    /** Delay between shots in seconds. Used to control fire rate for our test projectile, but also to prevent an overflow of server functions from binding SpawnProjectile directly to input.*/
+    UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+    float CastRate;
+
+    /** The type of projectile the character is going to fire.*/
+    UPROPERTY(EditDefaultsOnly, Category = "Gameplay|Projectile")
+    TSubclassOf<class AEvocationSpell> EvocationSpellClass;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -66,6 +91,14 @@ public:
     /** Setter for Current Health. Clamps the value between 0 and MaxHealth and calls OnHealthUpdate. Should only be called on the server.*/
     UFUNCTION(BlueprintCallable, Category = "Health")
     void SetCurrentHealth(float healthValue);
+
+    /** Getter for Max Health.*/
+    UFUNCTION(BlueprintPure, Category = "Gameplay")
+    FORCEINLINE bool GetIsCasting() const { return bIsCasting; }
+
+    /** Function for beginning evocation spell casting. This should only be triggered by the local player.*/
+    UFUNCTION(BlueprintCallable, Category = "Gameplay")
+    void StartCast(FVector2D Direction);
 
     /** Event for taking damage. Overridden from APawn.*/
     UFUNCTION(BlueprintCallable, Category = "Health")

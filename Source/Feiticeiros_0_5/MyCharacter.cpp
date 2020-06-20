@@ -39,6 +39,13 @@ AMyCharacter::AMyCharacter()
     //Initialize the player's Health
     MaxHealth = 100.0f;
     CurrentHealth = MaxHealth;
+
+    //Initialize projectile class
+    EvocationSpellClass = AEvocationSpell::StaticClass();
+
+    //Initialize fire rate
+    CastRate = 0.25f;
+    bIsCasting = false;
 }
 
 // Called when the game starts or when spawned
@@ -119,4 +126,39 @@ float AMyCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& Dam
     float damageApplied = CurrentHealth - DamageTaken;
     SetCurrentHealth(damageApplied);
     return damageApplied;
+}
+
+void AMyCharacter::StartCast(FVector2D Direction)
+{
+    if (!bIsCasting)
+    {
+        bIsCasting = true;
+        UWorld* World = GetWorld();
+        World->GetTimerManager().SetTimer(CastingTimer, this, &AMyCharacter::StopCast, CastRate, false);
+        HandleCast(Direction);
+    }
+}
+
+void AMyCharacter::StopCast()   
+{
+    bIsCasting = false;
+}
+
+void AMyCharacter::HandleCast_Implementation(FVector2D Direction)
+{
+    //FRotator CastRotation = Direction.ToOrientationRotator();
+    FVector Direction3D = FVector(Direction.X, Direction.Y, 0);
+    FRotator CastRotation = Direction3D.ToOrientationRotator();
+    FVector CastLocation = GetActorLocation() + CastRotation.RotateVector(FVector(100.0f, 0.0f, 0.0f));
+
+    FActorSpawnParameters CastParameters;
+    CastParameters.Instigator = this->Instigator;
+    CastParameters.Owner = this;
+
+    AEvocationSpell* spawnedProjectile = GetWorld()->SpawnActor<AEvocationSpell>(CastLocation, CastRotation, CastParameters);
+}
+
+bool AMyCharacter::HandleCast_Validate(FVector2D Direction)
+{
+    return true;
 }

@@ -9,118 +9,105 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "EvocationSpell.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
 
 AMyPlayerController::AMyPlayerController()
 {
-	bShowMouseCursor = true;
-	DefaultMouseCursor = EMouseCursor::Crosshairs;
-
-    //Initialize projectile class
-    EvocationSpellClass = AEvocationSpell::StaticClass();
-
-    //Initialize fire rate
-    CastRate = 0.25f;
-    bIsCasting = false;
+    bShowMouseCursor = true;
+    DefaultMouseCursor = EMouseCursor::Crosshairs;
 }
 
 void AMyPlayerController::PlayerTick(float DeltaTime)
 {
-	Super::PlayerTick(DeltaTime);
+    Super::PlayerTick(DeltaTime);
 }
 
 void AMyPlayerController::SetupInputComponent()
 {
-	// set up gameplay key bindings
-	Super::SetupInputComponent();
+    // set up gameplay key bindings
+    Super::SetupInputComponent();
 
     InputComponent->BindAxis("MoveForward", this, &AMyPlayerController::MoveForward);
     InputComponent->BindAxis("MoveRight", this, &AMyPlayerController::MoveRight);
 
     // Handle casting
-    InputComponent->BindAction("CastEvocationSpell", IE_Pressed, this, &AMyPlayerController::StartCast);
+    InputComponent->BindAction("CastEvocationSpell", IE_Pressed, this, &AMyPlayerController::Cast);
 }
 
 void AMyPlayerController::MoveForward(float Value)
 {
-    APawn* const MyPawn = GetPawn();
-    if (MyPawn)
+    AMyCharacter* const MyCharacter = static_cast<AMyCharacter*>(this->GetCharacter());
+    if (MyCharacter)
     {
-        AController* const MyController = MyPawn->GetController();
-        if ((MyController != NULL) && (Value != 0.0f))
+        if (!MyCharacter->GetIsCasting())
         {
-            // find out which way is forward
-            const FRotator Rotation = MyController->GetControlRotation();
-            const FRotator YawRotation(0, Rotation.Yaw, 0);
+            AController* const MyController = MyCharacter->GetController();
+            if ((MyController != NULL) && (Value != 0.0f))
+            {
+                // find out which way is forward
+                const FRotator Rotation = MyController->GetControlRotation();
+                const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-            // get forward vector
-            const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-            MyPawn->AddMovementInput(Direction, Value);
+                // get forward vector
+                const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+                MyCharacter->AddMovementInput(Direction, Value);
+            }
         }
     }
 }
 
 void AMyPlayerController::MoveRight(float Value)
-{
-    APawn* const MyPawn = GetPawn();
-    if (MyPawn)
+{ 
+    AMyCharacter* const MyCharacter = static_cast<AMyCharacter*>(this->GetCharacter());
+    if (MyCharacter)
     {
-        AController* const MyController = MyPawn->GetController();
-        if ((MyController != NULL) && (Value != 0.0f))
+        if (!MyCharacter->GetIsCasting())
         {
-            // find out which way is right
-            const FRotator Rotation = MyController->GetControlRotation();
-            const FRotator YawRotation(0, Rotation.Yaw, 0);
+            AController* const MyController = MyCharacter->GetController();
+            if ((MyController != NULL) && (Value != 0.0f))
+            {
+                // find out which way is right
+                const FRotator Rotation = MyController->GetControlRotation();
+                const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-            // get right vector 
-            const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-            // add movement in that direction
-            MyPawn->AddMovementInput(Direction, Value);
+                // get right vector 
+                const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+                // add movement in that direction
+                MyCharacter->AddMovementInput(Direction, Value);
+            }
         }
     }
 }
 
-void AMyPlayerController::StartCast()
+void AMyPlayerController::Cast()
 {
-    if (!bIsCasting)
+    AMyCharacter* const MyCharacter = static_cast<AMyCharacter*>(this->GetCharacter());
+    if (MyCharacter) 
     {
-        bIsCasting = true;
-        UWorld* World = GetWorld();
-        World->GetTimerManager().SetTimer(CastingTimer, this, &AMyPlayerController::StopCast, CastRate, false);
-        HandleCast();
-    }
-}
-
-void AMyPlayerController::StopCast()
-{
-    bIsCasting = false;
-}
-
-void AMyPlayerController::HandleCast_Implementation()
-{
-    APawn* const MyPawn = GetPawn();
-    if (MyPawn)
-    { 
         FHitResult Hit;
         GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
-        if (Hit.bBlockingHit)
+        if (GetWorld()) 
         {
-            FVector MouseDirection = Hit.ImpactPoint - MyPawn->GetActorLocation();
-            MouseDirection.Z = 0;
-            FRotator CastRotation = MouseDirection.ToOrientationRotator();
-            FVector CastLocation = MyPawn->GetActorLocation() + CastRotation.RotateVector(FVector(100.0f, 0.0f, 0.0f));
+            FVector2D MousePos;
+            if (GetWorld()->GetGameViewport()->GetMousePosition(MousePos))
+            {
+                FVector2D ViewportSize;
+                GetWorld()->GetGameViewport()->GetViewportSize(ViewportSize);
 
-            FActorSpawnParameters CastParameters;
-            CastParameters.Instigator = MyPawn->Instigator;
-            CastParameters.Owner = MyPawn;
+                FVector2D ViewportCenter = FVector2D(ViewportSize.X / 2, ViewportSize.Y / 2);
+    
+                FVector2D Direction = MousePos - ViewportCenter;
 
-            AEvocationSpell* spawnedProjectile = GetWorld()->SpawnActor<AEvocationSpell>(CastLocation, CastRotation, CastParameters);
-
+                MyCharacter->StartCast(FVector2D(-Direction.Y, Direction.X));
+            }
+            /*if (Hit.bBlockingHit)
+            {
+                // Get direction of the hit
+                FVector HitDirection = Hit.ImpactPoint - MyCharacter->GetActorLocation();
+                HitDirection.Z = 0;
+                MyCharacter->StartCast(HitDirection);
+            }*/
         }
     }
-}
-
-bool AMyPlayerController::HandleCast_Validate()
-{
-    return true;
 }
