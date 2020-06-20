@@ -98,6 +98,11 @@ void AMyPlayerController::Cast()
                 FVector2D ViewportCenter = FVector2D(ViewportSize.X / 2, ViewportSize.Y / 2);
     
                 FVector2D Direction = MousePos - ViewportCenter;
+                
+                FVector Direction3D = FVector(-Direction.Y, Direction.X, 0);
+                FRotator CastRotation = Direction3D.ToOrientationRotator();
+
+                MyCharacter->SetActorRotation(CastRotation);
 
                 MyCharacter->StartCast(FVector2D(-Direction.Y, Direction.X));
             }
