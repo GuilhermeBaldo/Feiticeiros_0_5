@@ -20,6 +20,14 @@ AMyPlayerController::AMyPlayerController()
 void AMyPlayerController::PlayerTick(float DeltaTime)
 {
     Super::PlayerTick(DeltaTime);
+
+    AMyCharacter* const MyCharacter = static_cast<AMyCharacter*>(this->GetCharacter());
+    if (MyCharacter)
+    {
+        if (MyCharacter->GetIsDead()) {
+            DisableInput(this);
+        }
+    }
 }
 
 void AMyPlayerController::SetupInputComponent()
@@ -106,13 +114,6 @@ void AMyPlayerController::Cast()
 
                 MyCharacter->StartCast(FVector2D(-Direction.Y, Direction.X));
             }
-            /*if (Hit.bBlockingHit)
-            {
-                // Get direction of the hit
-                FVector HitDirection = Hit.ImpactPoint - MyCharacter->GetActorLocation();
-                HitDirection.Z = 0;
-                MyCharacter->StartCast(HitDirection);
-            }*/
         }
     }
 }

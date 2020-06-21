@@ -46,6 +46,8 @@ AMyCharacter::AMyCharacter()
     //Initialize fire rate
     CastRate = 0.25f;
     bIsCasting = false;
+
+    bIsDead = false;
 }
 
 // Called when the game starts or when spawned
@@ -90,6 +92,7 @@ void AMyCharacter::OnHealthUpdate()
         {
             FString deathMessage = FString::Printf(TEXT("You have been killed."));
             GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
+            bIsDead = true;
         }
     }
 

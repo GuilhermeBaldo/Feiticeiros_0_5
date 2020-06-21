@@ -63,7 +63,8 @@ AEvocationSpell::AEvocationSpell()
 void AEvocationSpell::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+    SetLifeSpan(2.0f);	
 }
 
 // Called every frame
