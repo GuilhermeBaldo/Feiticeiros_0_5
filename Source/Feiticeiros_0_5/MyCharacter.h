@@ -64,6 +64,7 @@ protected:
 
     /** If true, we are in the process of firing projectiles. */
     bool bIsCasting;
+	FVector2D castDirection;
 
     /** Delay between shots in seconds. Used to control fire rate for our test projectile, but also to prevent an overflow of server functions from binding SpawnProjectile directly to input.*/
     UPROPERTY(EditDefaultsOnly, Category = "Gameplay")

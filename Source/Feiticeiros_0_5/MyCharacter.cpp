@@ -44,7 +44,7 @@ AMyCharacter::AMyCharacter()
     EvocationSpellClass = AEvocationSpell::StaticClass();
 
     //Initialize fire rate
-    CastRate = 0.25f;
+    CastRate = 0.75f;
     bIsCasting = false;
 
     bIsDead = false;
@@ -138,12 +138,13 @@ void AMyCharacter::StartCast(FVector2D Direction)
         bIsCasting = true;
         UWorld* World = GetWorld();
         World->GetTimerManager().SetTimer(CastingTimer, this, &AMyCharacter::StopCast, CastRate, false);
-        HandleCast(Direction);
+		castDirection = Direction;
     }
 }
 
 void AMyCharacter::StopCast()   
 {
+	HandleCast(castDirection);
     bIsCasting = false;
 }
 
