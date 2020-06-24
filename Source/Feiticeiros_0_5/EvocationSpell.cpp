@@ -53,8 +53,8 @@ AEvocationSpell::AEvocationSpell()
     //Definition for the Projectile Movement Component.
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
     ProjectileMovementComponent->SetUpdatedComponent(SphereComponent);
-    ProjectileMovementComponent->InitialSpeed = 1500.0f;
-    ProjectileMovementComponent->MaxSpeed = 1500.0f;
+    ProjectileMovementComponent->InitialSpeed = 200.0f;
+    ProjectileMovementComponent->MaxSpeed = 200.0f;
     ProjectileMovementComponent->bRotationFollowsVelocity = true;
     ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 }
@@ -76,7 +76,7 @@ void AEvocationSpell::Tick(float DeltaTime)
 
 void AEvocationSpell::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor)
+    if (OtherActor && OtherActor != GetOwner())
     {
         UGameplayStatics::ApplyPointDamage(OtherActor, Damage, NormalImpulse, Hit, Instigator->Controller, this, DamageType);
     }

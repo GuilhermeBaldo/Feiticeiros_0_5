@@ -24,10 +24,13 @@ public:
     // Basic components for this projectile
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     USphereComponent* SphereComponent;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* StaticMesh;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UProjectileMovementComponent* ProjectileMovementComponent;
+
     UPROPERTY(EditAnywhere, Category = "Effects")
     UParticleSystem* ExplosionEffect;
 

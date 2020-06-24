@@ -44,10 +44,14 @@ AMyCharacter::AMyCharacter()
     EvocationSpellClass = AEvocationSpell::StaticClass();
 
     //Initialize fire rate
+    CooldownRate = 2.0f;
     CastRate = 0.75f;
     bIsCasting = false;
+    bIsInCooldown = false;
 
     bIsDead = false;
+
+    bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -78,6 +82,8 @@ void AMyCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProperty>& OutLif
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AMyCharacter, CurrentHealth);
+    DOREPLIFETIME(AMyCharacter, bIsCasting);
+    DOREPLIFETIME(AMyCharacter, bIsInCooldown);
 }
 
 void AMyCharacter::OnHealthUpdate()
@@ -114,7 +120,6 @@ void AMyCharacter::OnRep_CurrentHealth()
     OnHealthUpdate();
 }
 
-
 void AMyCharacter::SetCurrentHealth(float healthValue)
 {
     if (Role == ROLE_Authority)
@@ -131,38 +136,55 @@ float AMyCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& Dam
     return damageApplied;
 }
 
-void AMyCharacter::StartCast(FVector2D Direction)
+void AMyCharacter::StartCast_Implementation(FVector Direction)
 {
-    if (!bIsCasting)
+    bIsInCooldown = true;
+    bIsCasting = true;
+
+    UWorld* World = GetWorld();
+
+    FTimerDelegate TimerCallback;
+    TimerCallback.BindUFunction(this, FName("StopCast"), Direction);
+
+    World->GetTimerManager().SetTimer(CastingTimer, TimerCallback, CastRate, false);
+    World->GetTimerManager().SetTimer(CooldownTimer, this, &AMyCharacter::ResetCooldown, CooldownRate, false);
+}
+
+bool AMyCharacter::StartCast_Validate(FVector Direction)
+{
+    if (!bIsCasting && !bIsInCooldown)
     {
-        bIsCasting = true;
-        UWorld* World = GetWorld();
-        World->GetTimerManager().SetTimer(CastingTimer, this, &AMyCharacter::StopCast, CastRate, false);
-		castDirection = Direction;
+        return true;
     }
+
+    return false;
 }
 
-void AMyCharacter::StopCast()   
+void AMyCharacter::StopCast_Implementation(FVector Direction)
 {
-	HandleCast(castDirection);
-    bIsCasting = false;
-}
-
-void AMyCharacter::HandleCast_Implementation(FVector2D Direction)
-{
-    //FRotator CastRotation = Direction.ToOrientationRotator();
-    FVector Direction3D = FVector(Direction.X, Direction.Y, 0);
-    FRotator CastRotation = Direction3D.ToOrientationRotator();
+    FRotator CastRotation = Direction.ToOrientationRotator();
     FVector CastLocation = GetActorLocation() + CastRotation.RotateVector(FVector(100.0f, 0.0f, 0.0f));
 
     FActorSpawnParameters CastParameters;
     CastParameters.Instigator = this->Instigator;
     CastParameters.Owner = this;
 
-    AEvocationSpell* spawnedProjectile = GetWorld()->SpawnActor<AEvocationSpell>(CastLocation, CastRotation, CastParameters);
+    AEvocationSpell* spawnedProjectile = GetWorld()->SpawnActor<AEvocationSpell>(CastLocation, CastRotation, CastParameters);  
+
+    bIsCasting = false;
 }
 
-bool AMyCharacter::HandleCast_Validate(FVector2D Direction)
+bool AMyCharacter::StopCast_Validate(FVector Direction)
+{
+    return true;
+}
+
+void AMyCharacter::ResetCooldown_Implementation()
+{
+    bIsInCooldown = false;
+}
+
+bool AMyCharacter::ResetCooldown_Validate()
 {
     return true;
 }

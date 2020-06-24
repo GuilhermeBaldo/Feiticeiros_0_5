@@ -15,6 +15,8 @@ AMyPlayerController::AMyPlayerController()
 {
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Crosshairs;
+    bIsMovable = true;
+
 }
 
 void AMyPlayerController::PlayerTick(float DeltaTime)
@@ -108,11 +110,11 @@ void AMyPlayerController::Cast()
                 FVector2D Direction = MousePos - ViewportCenter;
                 
                 FVector Direction3D = FVector(-Direction.Y, Direction.X, 0);
-                FRotator CastRotation = Direction3D.ToOrientationRotator();
 
-                MyCharacter->SetActorRotation(CastRotation);
-
-                MyCharacter->StartCast(FVector2D(-Direction.Y, Direction.X));
+                if(!MyCharacter->GetIsCasting() && !MyCharacter->GetIsInCooldown()) {
+                    MyCharacter->AddMovementInput(Direction3D, 0.0001f);
+                    MyCharacter->StartCast(Direction3D);
+                }                
             }
         }
     }

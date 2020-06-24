@@ -52,23 +52,34 @@ protected:
     void OnHealthUpdate();
 
     /** Function for ending weapon fire. Once this is called, the player can use StartFire again.*/
-    UFUNCTION(BlueprintCallable, Category = "Gameplay")
-    void StopCast();
-
-    /** Server function for spawning projectiles.*/
+    //UFUNCTION(BlueprintCallable, Category = "Gameplay")
     UFUNCTION(Server, Reliable, WithValidation)
-    void HandleCast(FVector2D Direction);
+    void StopCast(FVector Direction);
 
     /** A timer handle used for providing the fire rate delay in-between spawns.*/
     FTimerHandle CastingTimer;
 
     /** If true, we are in the process of firing projectiles. */
+    UPROPERTY(Replicated)
     bool bIsCasting;
-	FVector2D castDirection;
 
     /** Delay between shots in seconds. Used to control fire rate for our test projectile, but also to prevent an overflow of server functions from binding SpawnProjectile directly to input.*/
     UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
     float CastRate;
+
+    //UFUNCTION(BlueprintCallable, Category = "Gameplay")
+    UFUNCTION(Server, Reliable, WithValidation)
+    void ResetCooldown();
+
+    /** A timer handle used for providing the fire rate delay in-between spawns.*/
+    FTimerHandle CooldownTimer;
+
+    UPROPERTY(Replicated)
+    bool bIsInCooldown;
+
+    /** Delay between shots in seconds. Used to control fire rate for our test projectile, but also to prevent an overflow of server functions from binding SpawnProjectile directly to input.*/
+    UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+    float CooldownRate;
 
     /** The type of projectile the character is going to fire.*/
     UPROPERTY(EditDefaultsOnly, Category = "Gameplay|Projectile")
@@ -76,6 +87,7 @@ protected:
 
     /** If true, we are in the process of firing projectiles. */
     bool bIsDead;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -99,9 +111,14 @@ public:
     UFUNCTION(BlueprintPure, Category = "Gameplay")
     FORCEINLINE bool GetIsCasting() const { return bIsCasting; }
 
+    /** Getter for Max Health.*/
+    UFUNCTION(BlueprintPure, Category = "Gameplay")
+    FORCEINLINE bool GetIsInCooldown() const { return bIsInCooldown; }
+
     /** Function for beginning evocation spell casting. This should only be triggered by the local player.*/
-    UFUNCTION(BlueprintCallable, Category = "Gameplay")
-    void StartCast(FVector2D Direction);
+    //UFUNCTION(BlueprintCallable, Category = "Gameplay")
+    UFUNCTION(Server, Reliable, WithValidation)
+    void StartCast(FVector Direction);
 
     /** Event for taking damage. Overridden from APawn.*/
     UFUNCTION(BlueprintCallable, Category = "Health")

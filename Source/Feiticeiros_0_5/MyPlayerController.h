@@ -17,7 +17,9 @@ public:
 	AMyPlayerController();
 
 protected:
-	
+	bool bIsMovable;
+
+
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
 	virtual void SetupInputComponent() override;
