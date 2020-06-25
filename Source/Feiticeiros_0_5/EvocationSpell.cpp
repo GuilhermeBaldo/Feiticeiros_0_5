@@ -30,6 +30,9 @@ AEvocationSpell::AEvocationSpell()
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
     SphereComponent->InitSphereRadius(12.5f);
     SphereComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+    
+    //SphereComponent->IgnoreActorWhenMoving(GetOwner(), true);
+    
     RootComponent = SphereComponent;
 
     //Registering the Projectile Impact function on a Hit event.
@@ -64,7 +67,7 @@ void AEvocationSpell::BeginPlay()
 {
 	Super::BeginPlay();
 
-    SetLifeSpan(2.0f);	
+    SetLifeSpan(4.0f);	
 }
 
 // Called every frame
