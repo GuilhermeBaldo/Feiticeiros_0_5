@@ -18,7 +18,7 @@ AEvocationSpell::AEvocationSpell()
     bReplicates = true;
 
     DamageType = UDamageType::StaticClass();
-    Damage = 10.0f;
+    Damage = 50.0f;
 
     static ConstructorHelpers::FObjectFinder<UParticleSystem> DefaultExplosionEffect(TEXT("/Game/StarterContent/Particles/P_Explosion.P_Explosion"));
     if (DefaultExplosionEffect.Succeeded())
@@ -30,9 +30,8 @@ AEvocationSpell::AEvocationSpell()
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
     SphereComponent->InitSphereRadius(12.5f);
     SphereComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-    
-    //SphereComponent->IgnoreActorWhenMoving(GetOwner(), true);
-    
+
+    //SphereComponent->IgnoreActorWhenMoving(GetOwner(), true);    
     RootComponent = SphereComponent;
 
     //Registering the Projectile Impact function on a Hit event.
@@ -56,8 +55,8 @@ AEvocationSpell::AEvocationSpell()
     //Definition for the Projectile Movement Component.
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
     ProjectileMovementComponent->SetUpdatedComponent(SphereComponent);
-    ProjectileMovementComponent->InitialSpeed = 200.0f;
-    ProjectileMovementComponent->MaxSpeed = 200.0f;
+    ProjectileMovementComponent->InitialSpeed = 1000.0f;
+    ProjectileMovementComponent->MaxSpeed = 1000.0f;
     ProjectileMovementComponent->bRotationFollowsVelocity = true;
     ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 }
@@ -66,6 +65,8 @@ AEvocationSpell::AEvocationSpell()
 void AEvocationSpell::BeginPlay()
 {
 	Super::BeginPlay();
+
+    SphereComponent->MoveIgnoreActors.AddUnique(Instigator);
 
     SetLifeSpan(4.0f);	
 }
@@ -79,7 +80,7 @@ void AEvocationSpell::Tick(float DeltaTime)
 
 void AEvocationSpell::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor && OtherActor != GetOwner())
+    if (OtherActor)
     {
         UGameplayStatics::ApplyPointDamage(OtherActor, Damage, NormalImpulse, Hit, Instigator->Controller, this, DamageType);
     }
