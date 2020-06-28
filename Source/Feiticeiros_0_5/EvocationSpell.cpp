@@ -56,8 +56,8 @@ AEvocationSpell::AEvocationSpell()
     //Definition for the Projectile Movement Component.
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
     ProjectileMovementComponent->SetUpdatedComponent(SphereComponent);
-    ProjectileMovementComponent->InitialSpeed = 200.0f;
-    ProjectileMovementComponent->MaxSpeed = 200.0f;
+    ProjectileMovementComponent->InitialSpeed = 1000.0f;
+    ProjectileMovementComponent->MaxSpeed = 1000.0f;
     ProjectileMovementComponent->bRotationFollowsVelocity = true;
     ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 }
@@ -66,7 +66,7 @@ AEvocationSpell::AEvocationSpell()
 void AEvocationSpell::BeginPlay()
 {
 	Super::BeginPlay();
-
+    SphereComponent->MoveIgnoreActors.AddUnique(Instigator);
     SetLifeSpan(4.0f);	
 }
 
