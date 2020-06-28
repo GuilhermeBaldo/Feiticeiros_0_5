@@ -57,7 +57,8 @@ AMyCharacter::AMyCharacter()
 // Called when the game starts or when spawned
 void AMyCharacter::BeginPlay()
 {
-	Super::BeginPlay();    
+	Super::BeginPlay();
+	
 }
 
 // Called every frame
@@ -162,16 +163,14 @@ bool AMyCharacter::StartCast_Validate(FVector Direction)
 void AMyCharacter::StopCast_Implementation(FVector Direction)
 {
     FRotator CastRotation = Direction.ToOrientationRotator();
-    FVector CastLocation = GetActorLocation() + CastRotation.RotateVector(FVector(100.0f, 0.0f, 0.0f));
+    FVector CastLocation = GetActorLocation() + CastRotation.RotateVector(FVector(200.0f, 0.0f, 0.0f));
 
     FActorSpawnParameters CastParameters;
     CastParameters.Instigator = this->Instigator;
     CastParameters.Owner = this;
 
     AEvocationSpell* spawnedProjectile = GetWorld()->SpawnActor<AEvocationSpell>(CastLocation, CastRotation, CastParameters);  
-    
-    GetCapsuleComponent()->MoveIgnoreActors.AddUnique(spawnedProjectile);
-    
+
     bIsCasting = false;
 }
 
